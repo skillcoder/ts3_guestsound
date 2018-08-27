@@ -19,28 +19,6 @@ local monitor_for_group_id = "8"
 ---------------------------------
 ---------------------------------
 
-local function onClientMoveEvent(schid, clientID, oldChannelID, newChannelID, visibility, moveMessage)
-  local server_name, errorCode = ts3.getServerVariableAsString(schid, ts3defs.VirtualServerProperties.VIRTUALSERVER_NAME)
-  if (errorCode ~= ts3errors.ERROR_ok) then
-    ts3.printMessage(schid, (MODULE_NAME .. ": Error getting server name: " .. errorCode), 0)
-	return
-  end
-  --ts3.printMessageToCurrentTab("Server: "..server_name);
-  --if visibility == ts3defs.Visibility.ENTER_VISIBILITY then
-  if oldChannelID == 0 then -- only then enter server
-  	local nickname, error = ts3.getClientVariableAsString(schid, clientID, ts3defs.ClientProperties.CLIENT_NICKNAME)
-  	if error == ts3errors.ERROR_ok then
-  		--ts3.printMessageToCurrentTab("Event: "..oldChannelID.." "..nickname);
-    	local grps, error = ts3.getClientVariableAsString(schid, clientID, ts3defs.ClientProperties.CLIENT_SERVERGROUPS)
-    	if error == ts3errors.ERROR_ok then
-      		if (grps == monitor_for_group_id and server_name == my_server_name) or has_value(user_array, clientID) then 
-        		ts3.playWaveFile(schid, "./plugins/lua_plugin/guestsound/sound/new_connection.wav")
-      		end
-    	end
-  	end
-  end
-end
-
 local function has_value (tab, val)
     for index, value in ipairs (tab) do
         if value == val then
@@ -49,6 +27,51 @@ local function has_value (tab, val)
     end
 
     return false
+end
+
+local pluginPath = ts3.getPluginPath()
+local function playSound (schid, wav)
+  local wavPath = pluginPath.."lua_plugin/guestsound/sound/"..wav
+  --ts3.printMessageToCurrentTab(wavPath)
+  local error = ts3.playWaveFile(schid, wavPath)
+  if error ~= ts3errors.ERROR_ok then
+    ts3.printMessageToCurrentTab("Error playing "..wavPath..": " .. error)
+  end
+end
+
+local function onClientMoveEvent(schid, clientID, oldChannelID, newChannelID, visibility, moveMessage)
+
+  --if visibility == ts3defs.Visibility.ENTER_VISIBILITY then
+  if oldChannelID == 0 then -- only then enter server
+    local nickname, errorCode = ts3.getClientVariableAsString(schid, clientID, ts3defs.ClientProperties.CLIENT_NICKNAME)
+    if errorCode ~= ts3errors.ERROR_ok then
+      ts3.printMessage(schid, (MODULE_NAME .. ": Error getting nickname: " .. errorCode), 0)
+      return
+    end
+
+    if (has_value(user_array, clientID)) then 
+      ts3.printMessageToCurrentTab("Our user: "..nickname)
+      playSound(schid, "new_connection.wav")
+      return
+    end
+
+    local server_name, errorCode = ts3.getServerVariableAsString(schid, ts3defs.VirtualServerProperties.VIRTUALSERVER_NAME)
+    if (errorCode ~= ts3errors.ERROR_ok) then
+      ts3.printMessage(schid, (MODULE_NAME .. ": Error getting server name: " .. errorCode), 0)
+      return
+    end
+
+    --ts3.printMessageToCurrentTab(nickname.." come to server: "..server_name)
+    if server_name == monitor_for_server_name then
+  	  local grps, error = ts3.getClientVariableAsString(schid, clientID, ts3defs.ClientProperties.CLIENT_SERVERGROUPS)
+   	  if error == ts3errors.ERROR_ok then
+   		  if grps == monitor_for_group_id then 
+          ts3.printMessageToCurrentTab("Our guest: "..nickname.." GroupId: "..grps)
+          playSound(schid, "new_connection_ru.wav")
+        end
+  	  end
+    end
+  end
 end
 
 guestsound_events = {
