@@ -2,13 +2,22 @@ require("ts3defs")
 require("ts3errors")
 
 local MODULE_NAME = "guestsound"
---local user_array = { "MnfjhODyEeAWpRKhcFRZSse3o4c=", "qioeb8wGoUQ/Cw5jbFFTnnpE8Nc=" }
+
+--- C O N F I G U R A T I O N ---
+-- Monitor for specific user (You must know user id)
 local user_array = {
-	"MnfjhODyEeAWpRKhcFRZSse3o4c=", -- Sword
-	"qioeb8wGoUQ/Cw5jbFFTnnpE8Nc=" -- Vitty
-	-- "" -- Reptos
-	-- "lmiGld35Qabf7xv+ZJJ6LYA2BbE=" -- kiryha
+	"MnfjhODyEeAWpRKhcFRZSse3o4c=", -- SomeUsername
+	"qioeb8wGoUQ/Cw5jbFFTnnpE8Nc=", -- MyBigFriend
+	-- "lmiGld35Qabf7xv+ZJJ6LYA2BbE=" -- Disabled for this user
 }
+
+ -- First (TOP) Channel name
+local monitor_for_server_name = "You server name"
+-- replace 8 with the serverguest group id
+-- Permission->Server Groups->Example: Guest(8)
+local monitor_for_group_id = "8" 
+---------------------------------
+---------------------------------
 
 local function onClientMoveEvent(schid, clientID, oldChannelID, newChannelID, visibility, moveMessage)
   local server_name, errorCode = ts3.getServerVariableAsString(schid, ts3defs.VirtualServerProperties.VIRTUALSERVER_NAME)
@@ -24,7 +33,7 @@ local function onClientMoveEvent(schid, clientID, oldChannelID, newChannelID, vi
   		--ts3.printMessageToCurrentTab("Event: "..oldChannelID.." "..nickname);
     	local grps, error = ts3.getClientVariableAsString(schid, clientID, ts3defs.ClientProperties.CLIENT_SERVERGROUPS)
     	if error == ts3errors.ERROR_ok then
-      		if (grps == "8" and server_name == "Zanul.ru") or has_value(user_array, clientID) then -- replace 10 with the serverguest group id
+      		if (grps == monitor_for_group_id and server_name == my_server_name) or has_value(user_array, clientID) then 
         		ts3.playWaveFile(schid, "./plugins/lua_plugin/guestsound/sound/new_connection.wav")
       		end
     	end
